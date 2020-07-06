@@ -421,40 +421,46 @@ function ManaBar.CreateTickerFrame(frameName)
     ManaBar.fivesectime = GetTime()
 
     ManaBar.OnUpdate = function ()
+	ManaBar.HasMana = UnitPowerType("player");
         ManaBar.CurrentMana = UnitMana("player")
 	ManaBar.MaxMana = UnitManaMax("player")
 	local now = GetTime()
-	if ManaBar.CurrentMana < ManaBar.LastMana then
-		ManaBar.LastMana = ManaBar.CurrentMana
-		ManaBar.fivesec = true
-		ManaBar.fivesectime = now + 5
-	end
-	
-	if ManaBar.CurrentMana > ManaBar.LastMana then
-		ManaBar.LastMana = ManaBar.CurrentMana
-		ManaBar.lastTime = now
-	end
+	if ManaBar.HasMana==0 then
+		if ManaBar.CurrentMana < ManaBar.LastMana then
+			ManaBar.LastMana = ManaBar.CurrentMana
+			ManaBar.fivesec = true
+			ManaBar.fivesectime = now + 5
+		end
 
-	if now > ManaBar.fivesectime then
-		ManaBar.fivesec = false
-	end
-	
-        if (now > ManaBar.lastTime + 2) and (ManaBar.fivesec==false) then
-            ManaBar.lastTime = now
-        end
+		if ManaBar.CurrentMana > ManaBar.LastMana then
+			ManaBar.LastMana = ManaBar.CurrentMana
+			ManaBar.lastTime = now
+		end
 
-	if ManaBar.CurrentMana==ManaBar.MaxMana then
-		ManaBarTickerBar:SetWidth(ManaBarDB.ticker.width)
-		ManaBar.text:SetText("Full Mana")
-	elseif (now < ManaBar.fivesectime) and (ManaBar.fivesec==true) then
-		ManaBar.text:SetText("5 Seconds")
-		b:SetVertexColor(unpack(ManaBarDB.ticker.colorfivesec))
-		ManaBarTickerBar:SetWidth((ManaBar.fivesectime - GetTime()) * ManaBarDB.ticker.width / 5)
+		if now > ManaBar.fivesectime then
+			ManaBar.fivesec = false
+		end
+	
+        	if (now > ManaBar.lastTime + 2) and (ManaBar.fivesec==false) then
+           		ManaBar.lastTime = now
+        	end
+
+		if ManaBar.CurrentMana==ManaBar.MaxMana then
+			ManaBarTickerBar:SetWidth(ManaBarDB.ticker.width)
+			ManaBar.text:SetText("Full Mana")
+		elseif (now < ManaBar.fivesectime) and (ManaBar.fivesec==true) then
+			ManaBar.text:SetText("5 Seconds")
+			b:SetVertexColor(unpack(ManaBarDB.ticker.colorfivesec))
+			ManaBarTickerBar:SetWidth((ManaBar.fivesectime - GetTime()) * ManaBarDB.ticker.width / 5)
+		else
+			ManaBar.text:SetText("Regenerating")
+        		b:SetVertexColor(unpack(ManaBarDB.ticker.color))
+			ManaBarTickerBar:SetWidth((GetTime() - ManaBar.lastTime) * ManaBarDB.ticker.width / 2)
+    		end
 	else
-		ManaBar.text:SetText("Regenerating")
-        	b:SetVertexColor(unpack(ManaBarDB.ticker.color))
-		ManaBarTickerBar:SetWidth((GetTime() - ManaBar.lastTime) * ManaBarDB.ticker.width / 2)
-    	end
+		ManaBar.frame:Hide()
+        	if ManaBarTicker then ManaBarTicker:Hide() end
+	end
     end
     
     f:SetScript("OnUpdate",ManaBar.OnUpdate)

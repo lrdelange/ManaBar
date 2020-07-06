@@ -15,27 +15,26 @@ function ManaBar.ADDON_LOADED(self,event,arg1)
         ManaBarDB.posY = ManaBarDB.posY or 0
         ManaBarDB.align = ManaBarDB.align or "CENTER"
         ManaBarDB.visibility = ManaBarDB.visibility or "Combat"
-        ManaBarDB.font = ManaBarDB.font or "Emblem"
-        ManaBarDB.fontSize = ManaBarDB.fontSize or 35
-        ManaBarDB.manaColor = ManaBarDB.manaColor or {0.98,1,1}
+        ManaBarDB.font = ManaBarDB.font or "Arial Narrow"
+        ManaBarDB.fontSize = ManaBarDB.fontSize or 20
+        ManaBarDB.TextColor = ManaBarDB.TextColor or {0.98,1,1}
         
         ManaBarDB.ticker = ManaBarDB.ticker or {}
         ManaBarDB.ticker.color = ManaBarDB.ticker.color or {0.12,0.56,1}
-	ManaBarDB.ticker.color5s = ManaBarDB.ticker.color5s or {0.19,0.8,0.19}
+	ManaBarDB.ticker.colorfivesec = ManaBarDB.ticker.colorfivesec or {0.19,0.8,0.19}
         ManaBarDB.ticker.alphaBG = ManaBarDB.ticker.alphaBG or 0.5
         ManaBarDB.ticker.offsetX = ManaBarDB.ticker.offsetX or 0
-        ManaBarDB.ticker.offsetY = ManaBarDB.ticker.offsetY or -20
-        ManaBarDB.ticker.width = ManaBarDB.ticker.width or 60
-        ManaBarDB.ticker.height = ManaBarDB.ticker.height or 10
+        ManaBarDB.ticker.offsetY = ManaBarDB.ticker.offsetY or 0
+        ManaBarDB.ticker.width = ManaBarDB.ticker.width or 160
+        ManaBarDB.ticker.height = ManaBarDB.ticker.height or 18
         ManaBarDB.ticker.texture = ManaBarDB.ticker.texture or "Aluminium"
     
         ManaBar.hasmana = UnitPowerType("player");
-        if ManaBar.class == 0 then
-            ManaBar.color = ManaBarDB.manaColor
+        if ManaBar.hasmana == 0 then
+            ManaBar.color = ManaBarDB.TextColor
             ManaBar.frame, ManaBar.text = ManaBar.CreateFrame(60,50,"ManaBarFrame")
             ManaBar.ticker = ManaBar.CreateTickerFrame("ManaBarTicker")
             ManaBar:RegisterEvent("UNIT_MANA")
-	    ManaBar:RegisterEvent("UNIT_MAXMANA")
         else
             ManaBar:UnregisterEvent("ADDON_LOADED")
             return
@@ -44,9 +43,13 @@ function ManaBar.ADDON_LOADED(self,event,arg1)
         ManaBar.UpdateBehavior(ManaBarDB.visibility)
         
         ManaBar:RegisterEvent("PLAYER_ENTERING_WORLD")
---        ManaBar.PLAYER_ENTERING_WORLD = ManaBar.UNIT_MANA
+        ManaBar.PLAYER_ENTERING_WORLD = ManaBar.UNIT_MANA
         ManaBar.MakeOptions()
     end
+end
+
+function ManaBar.UNIT_MANA(self)
+	ManaBar.text:SetText("Full Mana")
 end
 
 function ManaBar.UpdateBehavior(state)
@@ -89,19 +92,7 @@ function ManaBar.PLAYER_REGEN_DISABLED()
 end
 
 function ManaBar.COMBAT_LOG_EVENT_UNFILTERED(self, event, timestamp, eventType, srcGUID, srcName, srcFlags, dstGUID, dstName, dstFlags, spellID, spellName, spellSchool, auraType)
-    
-    local isDestPlayer = (bit.band(dstFlags, COMBATLOG_OBJECT_TYPE_PLAYER) == COMBATLOG_OBJECT_TYPE_PLAYER)
-    
-    if isDestPlayer and auraType == "BUFF" and string.find(spellName,"Prowl") ~= nil then
-        if     eventType == "SPELL_AURA_APPLIED" then
-            ManaBar.stealth = true
-        end
-        if  (  eventType == "SPELL_AURA_REMOVED"
-            or eventType == "SPELL_AURA_DISPELLED" ) then
-            ManaBar.stealth = false
-        end
-        ManaBar.UpdateHide(ManaBarDB.visibility)
-    end
+
 end
 
 function ManaBar.MakeOptions(self)
@@ -244,29 +235,42 @@ function ManaBar.MakeOptions(self)
                 order = 3,
                 args = {
                     manaColor = {
-                        name = "Mana Color",
+                        name = "Text Color",
                         type = 'color',
                         desc = "mana color",
                         order = 1,
                         get = function(info)
-                            local r,g,b = unpack(ManaBarDB.manaColor)
+                            local r,g,b = unpack(ManaBarDB.TextColor)
                             return r,g,b
                         end,
                         set = function(info, r, g, b)
-                            ManaBarDB.manaColor = { r, g, b }
+                            ManaBarDB.TextColor = { r, g, b }
                         end,
                     },
                     tickerColor = {
                         name = "Ticker Color",
                         type = 'color',
                         desc = "TickBar color",
-                        order = 3,
+                        order = 2,
                         get = function(info)
                             local r,g,b = unpack(ManaBarDB.ticker.color)
                             return r,g,b
                         end,
                         set = function(info, r, g, b)
                             ManaBarDB.ticker.color = { r, g, b }
+                        end,
+                    },
+                    tickerColorfivesec = {
+                        name = "Ticker Color 5sec",
+                        type = 'color',
+                        desc = "TickBar color 5sec",
+                        order = 3,
+                        get = function(info)
+                            local r,g,b = unpack(ManaBarDB.ticker.colorfivesec)
+                            return r,g,b
+                        end,
+                        set = function(info, r, g, b)
+                            ManaBarDB.ticker.colorfivesec = { r, g, b }
                         end,
                     },
                     tickeralphaBG = {
@@ -377,13 +381,11 @@ function ManaBar.CreateFrame(width,height,frameName)
     text = f:CreateFontString(nil, "OVERLAY");
     text:SetFont(media:Fetch('font',ManaBarDB.font),ManaBarDB.fontSize)
     text:ClearAllPoints()
-    text:SetWidth(width)
-    text:SetHeight(height)
-    text:SetPoint("BOTTOMRIGHT", f, "BOTTOMRIGHT",0,0)
+    text:SetWidth(width*4)
+    text:SetHeight(height*2)
+    text:SetPoint("CENTER", f, "CENTER",0,0)
     text:SetJustifyH(ManaBarDB.align)
     text:SetVertexColor(unpack(ManaBar.color))
-    
-    ManaBar.currentMana = 0
     
     f:Hide()
     return f, text
@@ -412,14 +414,47 @@ function ManaBar.CreateTickerFrame(frameName)
     b:SetPoint("TOPLEFT",f,"TOPLEFT",0,0)
     b:SetPoint("BOTTOMLEFT",f,"BOTTOMLEFT",0,0)
     b:SetVertexColor(unpack(ManaBarDB.ticker.color))
-    
+
+    ManaBar.LastMana = UnitMana("player")
     ManaBar.lastTime = GetTime()
+    ManaBar.fivesec = false
+    ManaBar.fivesectime = GetTime()
+
     ManaBar.OnUpdate = function ()
-        local now = GetTime()
-        if now > ManaBar.lastTime + 2 then
+        ManaBar.CurrentMana = UnitMana("player")
+	ManaBar.MaxMana = UnitManaMax("player")
+	local now = GetTime()
+	if ManaBar.CurrentMana < ManaBar.LastMana then
+		ManaBar.LastMana = ManaBar.CurrentMana
+		ManaBar.fivesec = true
+		ManaBar.fivesectime = now + 5
+	end
+	
+	if ManaBar.CurrentMana > ManaBar.LastMana then
+		ManaBar.LastMana = ManaBar.CurrentMana
+		ManaBar.lastTime = now
+	end
+
+	if now > ManaBar.fivesectime then
+		ManaBar.fivesec = false
+	end
+	
+        if (now > ManaBar.lastTime + 2) and (ManaBar.fivesec==false) then
             ManaBar.lastTime = now
         end
-        ManaBarTickerBar:SetWidth((GetTime() - ManaBar.lastTime) * ManaBarDB.ticker.width / 2)
+
+	if ManaBar.CurrentMana==ManaBar.MaxMana then
+		ManaBarTickerBar:SetWidth(ManaBarDB.ticker.width)
+		ManaBar.text:SetText("Full Mana")
+	elseif (now < ManaBar.fivesectime) and (ManaBar.fivesec==true) then
+		ManaBar.text:SetText("5 Seconds")
+		b:SetVertexColor(unpack(ManaBarDB.ticker.colorfivesec))
+		ManaBarTickerBar:SetWidth((ManaBar.fivesectime - GetTime()) * ManaBarDB.ticker.width / 5)
+	else
+		ManaBar.text:SetText("Regenerating")
+        	b:SetVertexColor(unpack(ManaBarDB.ticker.color))
+		ManaBarTickerBar:SetWidth((GetTime() - ManaBar.lastTime) * ManaBarDB.ticker.width / 2)
+    	end
     end
     
     f:SetScript("OnUpdate",ManaBar.OnUpdate)

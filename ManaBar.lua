@@ -44,23 +44,10 @@ function ManaBar.ADDON_LOADED(self,event,arg1)
         ManaBar.UpdateBehavior(ManaBarDB.visibility)
         
         ManaBar:RegisterEvent("PLAYER_ENTERING_WORLD")
-        ManaBar.PLAYER_ENTERING_WORLD = ManaBar.UNIT_MANA
+--        ManaBar.PLAYER_ENTERING_WORLD = ManaBar.UNIT_MANA
         ManaBar.MakeOptions()
     end
 end
-
--------------------????????????????-----------------------
-function ManaBar.UNIT_MANA(self)
-    ManaBar.text:SetText(UnitMana("player"))
-    local newMana = UnitMana("player")
-    if newEnergy > ManaBar.currentMana then
-        if newMana >= ManaBar.currentMana+19 and newMana <= ManaBar.currentMana+21 then
-            ManaBar.lastTime = GetTime()
-        end
-    end
-    ManaBar.currentMana = UnitMana("player")
-end
--------------------????????????????-----------------------
 
 function ManaBar.UpdateBehavior(state)
     if state == "Combat" then
@@ -91,55 +78,16 @@ function ManaBar.UpdateHide(state)
     return nil
 end
 
-function ManaBar.UPDATE_SHAPESHIFT_FORM()
-    if ManaBar.class == "ROGUE" then
-        local _, name, active, _ = GetShapeshiftFormInfo(1)
-        if active == 1 then
-            ManaBar.stealth = true
-        else
-            ManaBar.stealth = false
-        end
-        ManaBar.UpdateHide(ManaBarDB.visibility)
-    elseif ManaBar.class == "DRUID" then
-        local _, _, bear_active, _ = GetShapeshiftFormInfo(1)
-        local _, _, cat_active, _ = GetShapeshiftFormInfo(3)
-        if bear_active == 1 then
-            ManaBar:RegisterEvent("UNIT_RAGE")
-            ManaBar:UnregisterEvent("UNIT_ENERGY")
-            ManaBar:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-            ManaBar.color = ManaBarDB.rageColor
-            ManaBar.text:SetVertexColor(unpack(ManaBar.color))
-            
-            ManaBar.UNIT_ENERGY()
-            ManaBar.UpdateHide(ManaBarDB.visibility)
-        elseif cat_active == 1 then
-            ManaBar:UnregisterEvent("UNIT_RAGE")
-            ManaBar:RegisterEvent("UNIT_ENERGY")
-            ManaBar:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-            ManaBar.lastTime = GetTime()
-            ManaBar.currentEnergy = UnitMana("player")
-            ManaBar.color = ManaBarDB.energyColor
-            ManaBar.text:SetVertexColor(unpack(ManaBar.color))
-            
-            ManaBar.UNIT_ENERGY()
-            ManaBar.UpdateHide(ManaBarDB.visibility)
-        else
-            ManaBar:UnregisterEvent("UNIT_RAGE")
-            ManaBar:UnregisterEvent("UNIT_ENERGY")
-            ManaBar:UnregisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-            ManaBar.UpdateHide(ManaBarDB.visibility)
-        end
-    end
-    
-end
 function ManaBar.PLAYER_REGEN_ENABLED()
     ManaBar.combat = false
     ManaBar.UpdateHide(ManaBarDB.visibility)
 end
+
 function ManaBar.PLAYER_REGEN_DISABLED()
     ManaBar.combat = true
     ManaBar.UpdateHide(ManaBarDB.visibility)
 end
+
 function ManaBar.COMBAT_LOG_EVENT_UNFILTERED(self, event, timestamp, eventType, srcGUID, srcName, srcFlags, dstGUID, dstName, dstFlags, spellID, spellName, spellSchool, auraType)
     
     local isDestPlayer = (bit.band(dstFlags, COMBATLOG_OBJECT_TYPE_PLAYER) == COMBATLOG_OBJECT_TYPE_PLAYER)
@@ -295,36 +243,17 @@ function ManaBar.MakeOptions(self)
                 guiInline = true,
                 order = 3,
                 args = {
-                    energyColor = {
-                        name = "Energy Color",
+                    manaColor = {
+                        name = "Mana Color",
                         type = 'color',
-                        desc = "energy color",
+                        desc = "mana color",
                         order = 1,
                         get = function(info)
-                            local r,g,b = unpack(ManaBarDB.energyColor)
+                            local r,g,b = unpack(ManaBarDB.manaColor)
                             return r,g,b
                         end,
                         set = function(info, r, g, b)
-                            ManaBarDB.energyColor = { r, g, b }
-                            if ManaBar.class == "ROGUE" then
-                                ManaBar.text:SetVertexColor(r,g,b)
-                            end
-                        end,
-                    },
-                    rageColor = {
-                        name = "Rage Color",
-                        type = 'color',
-                        desc = "rage color",
-                        order = 2,
-                        get = function(info)
-                            local r,g,b = unpack(ManaBarDB.rageColor)
-                            return r,g,b
-                        end,
-                        set = function(info, r, g, b)
-                            ManaBarDB.rageColor = { r, g, b }
-                            if ManaBar.class == "WARRIOR" then
-                                ManaBar.text:SetVertexColor(r,g,b)
-                            end
+                            ManaBarDB.manaColor = { r, g, b }
                         end,
                     },
                     tickerColor = {
@@ -338,9 +267,6 @@ function ManaBar.MakeOptions(self)
                         end,
                         set = function(info, r, g, b)
                             ManaBarDB.ticker.color = { r, g, b }
-                            if ManaBar.class == "ROGUE" then
-                                ManaBarTickerBar:SetVertexColor(r,g,b)
-                            end
                         end,
                     },
                     tickeralphaBG = {
@@ -457,7 +383,7 @@ function ManaBar.CreateFrame(width,height,frameName)
     text:SetJustifyH(ManaBarDB.align)
     text:SetVertexColor(unpack(ManaBar.color))
     
-    ManaBar.currentEnergy = 0
+    ManaBar.currentMana = 0
     
     f:Hide()
     return f, text

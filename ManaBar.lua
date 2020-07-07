@@ -421,6 +421,7 @@ function ManaBar.CreateTickerFrame(frameName)
     ManaBar.fivesectime = GetTime()
 
     ManaBar.OnUpdate = function ()
+	ManaBar.UpdateHide(ManaBarDB.visibility)
 	ManaBar.HasMana = UnitPowerType("player");
         ManaBar.CurrentMana = UnitMana("player")
 	ManaBar.MaxMana = UnitManaMax("player")

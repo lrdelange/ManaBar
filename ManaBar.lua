@@ -425,6 +425,7 @@ function ManaBar.CreateTickerFrame(frameName)
 	ManaBar.HasMana = UnitPowerType("player");
         ManaBar.CurrentMana = UnitMana("player")
 	ManaBar.MaxMana = UnitManaMax("player")
+	ManaBar.base, ManaBar.casting = GetManaRegen("player")
 	local now = GetTime()
 	if ManaBar.HasMana==0 then
 		if ManaBar.CurrentMana < ManaBar.LastMana then
@@ -454,7 +455,8 @@ function ManaBar.CreateTickerFrame(frameName)
 			b:SetVertexColor(unpack(ManaBarDB.ticker.colorfivesec))
 			ManaBarTickerBar:SetWidth((ManaBar.fivesectime - GetTime()) * ManaBarDB.ticker.width / 5)
 		else
-			ManaBar.text:SetText("Regenerating")
+			local msg=tostring(floor(ManaBar.base*2))
+			ManaBar.text:SetText(msg .. " Mana Regen")
         		b:SetVertexColor(unpack(ManaBarDB.ticker.color))
 			ManaBarTickerBar:SetWidth((GetTime() - ManaBar.lastTime) * ManaBarDB.ticker.width / 2)
     		end

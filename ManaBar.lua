@@ -76,7 +76,7 @@ function ManaBar.UpdateHide(state)
         return true
     else
         ManaBar.frame:Hide()
-        if ManaBarTicker then ManaBarTicker:Hide() end
+        ManaBarTicker:Hide()
     end
     return nil
 end

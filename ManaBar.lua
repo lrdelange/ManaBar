@@ -450,7 +450,7 @@ function ManaBar.CreateTickerFrame(frameName)
 		if ManaBar.CurrentMana==ManaBar.MaxMana then
 			ManaBarTickerBar:SetWidth(ManaBarDB.ticker.width)
 			ManaBar.text:SetText("Full Mana")
-		elseif (now < ManaBar.fivesectime) and (ManaBar.fivesec==true) then
+		elseif (now <= ManaBar.fivesectime) and (ManaBar.fivesec==true) then
 			ManaBar.text:SetText("5 Seconds")
 			b:SetVertexColor(unpack(ManaBarDB.ticker.colorfivesec))
 			ManaBarTickerBar:SetWidth((ManaBar.fivesectime - GetTime()) * ManaBarDB.ticker.width / 5)

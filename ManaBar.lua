@@ -18,6 +18,7 @@ function ManaBar.ADDON_LOADED(self,event,arg1)
         ManaBarDB.font = ManaBarDB.font or "Arial Narrow"
         ManaBarDB.fontSize = ManaBarDB.fontSize or 20
         ManaBarDB.TextColor = ManaBarDB.TextColor or {0.98,1,1}
+	ManaBarDB.percentage = ManaBarDB.percentage or 50
         
         ManaBarDB.ticker = ManaBarDB.ticker or {}
         ManaBarDB.ticker.color = ManaBarDB.ticker.color or {0.12,0.56,1}
@@ -139,11 +140,29 @@ function ManaBar.MakeOptions(self)
         name = "General",
         order = 1,
         args = {
+	    PercentageS = {
+                type = "group",
+                name = "Percentage when FSR kicks in",
+                guiInline = true,
+                order = 1,
+                args = {
+                    posX = {
+                        name = "Percentage FSR",
+                        type = "range",
+                        desc = "Percentage when the FSR kicks in",
+                        get = function(info) return ManaBarDB.percentage end,
+                        set = function(info, s) ManaBarDB.percentage = s; end,
+                        min = 0,
+                        max = 100,
+                        step = 1,
+                    },
+		},
+            },
             showPositon = {
                 type = "group",
                 name = "Frame Position",
                 guiInline = true,
-                order = 1,
+                order = 2,
                 args = {
                     posX = {
                         name = "Pos X",
@@ -171,7 +190,7 @@ function ManaBar.MakeOptions(self)
                 type = "group",
                 name = "Scale & Font",
                 guiInline = true,
-                order = 2,
+                order = 3,
                 args = {
                     align = {
                         type = "select",
@@ -232,7 +251,7 @@ function ManaBar.MakeOptions(self)
                 type = "group",
                 name = "Colors",
                 guiInline = true,
-                order = 3,
+                order = 4,
                 args = {
                     manaColor = {
                         name = "Text Color",
@@ -290,7 +309,7 @@ function ManaBar.MakeOptions(self)
                 type = "group",
                 name = "Ticker",
                 guiInline = true,
-                order = 4,
+                order = 5,
                 args = {
                     offsetX = {
                         name = "Offset X",
@@ -429,9 +448,11 @@ function ManaBar.CreateTickerFrame(frameName)
 	local now = GetTime()
 	if ManaBar.HasMana==0 then
 		if ManaBar.CurrentMana < ManaBar.LastMana then
-			ManaBar.LastMana = ManaBar.CurrentMana
-			ManaBar.fivesec = true
-			ManaBar.fivesectime = now + 5
+			if (ManaBar.casting < (ManaBar.base * ManaBarDB.percentage)) then
+				ManaBar.LastMana = ManaBar.CurrentMana
+				ManaBar.fivesec = true
+				ManaBar.fivesectime = now + 5
+			end
 		end
 
 		if ManaBar.CurrentMana > ManaBar.LastMana then

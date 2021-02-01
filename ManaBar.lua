@@ -31,15 +31,15 @@ function ManaBar.ADDON_LOADED(self,event,arg1)
         ManaBarDB.ticker.texture = ManaBarDB.ticker.texture or "Aluminium"
     
         ManaBar.hasmana = UnitPowerType("player");
-        if ManaBar.hasmana == 0 then
+        --if ManaBar.hasmana == 0 then
             ManaBar.color = ManaBarDB.TextColor
             ManaBar.frame, ManaBar.text = ManaBar.CreateFrame(60,50,"ManaBarFrame")
             ManaBar.ticker = ManaBar.CreateTickerFrame("ManaBarTicker")
             ManaBar:RegisterEvent("UNIT_MANA")
-        else
-            ManaBar:UnregisterEvent("ADDON_LOADED")
-            return
-        end
+        --else
+            --ManaBar:UnregisterEvent("ADDON_LOADED")
+            --return
+        --end
         
         ManaBar.UpdateBehavior(ManaBarDB.visibility)
         
@@ -447,6 +447,9 @@ function ManaBar.CreateTickerFrame(frameName)
 	ManaBar.base, ManaBar.casting = GetManaRegen("player")
 	local now = GetTime()
 	if ManaBar.HasMana==0 then
+		--print("Has mana")
+        	b:SetTexture(media:Fetch('statusbar',ManaBarDB.ticker.texture))
+		bg:SetTexture(0,0,0,ManaBarDB.ticker.alphaBG)
 		if ManaBar.CurrentMana < ManaBar.LastMana then
 			if (ManaBar.casting < (ManaBar.base * ManaBarDB.percentage)) then
 				ManaBar.LastMana = ManaBar.CurrentMana
@@ -482,8 +485,11 @@ function ManaBar.CreateTickerFrame(frameName)
 			ManaBarTickerBar:SetWidth((GetTime() - ManaBar.lastTime) * ManaBarDB.ticker.width / 2)
     		end
 	else
-		ManaBar.frame:Hide()
-        	if ManaBarTicker then ManaBarTicker:Hide() end
+		--print("No mana")
+        	b:SetTexture(0,0,0,0)
+		bg:SetTexture(0,0,0,0)
+		ManaBar.text:SetText("")
+		--f:Hide()
 	end
     end
     
